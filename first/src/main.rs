@@ -420,6 +420,97 @@ impl BankAccount{
     }
 
 
+    struct Position{
+        name: String,
+        is_bought: bool,
+    }
+    struct ShoppingList{
+        list: Vec<Position>,
+    }
+
+    impl ShoppingList{
+        fn new() -> ShoppingList{
+            ShoppingList{
+                list: Vec::new(),
+            }
+        }
+
+        fn push(&mut self, pos: Position){
+            self.list.push(pos);
+        }
+
+        fn bought(&mut self, s: &str) {
+            for item in &mut self.list {
+                if item.name == s{
+                    item.is_bought = true;
+                    break;
+                }
+            }
+        }
+
+        fn print(&self){
+            for item in &self.list {
+                if !item.is_bought{
+                    println!("{}", item.name);
+                }
+            }
+            for item in &self.list {
+                if item.is_bought{
+                    println!("{}", item.name);
+                }
+            }
+        }
+    }
+
+
+#[derive(Debug, Clone, PartialEq)]
+struct Book {
+    title: String,
+    author: String,
+    year: u32,
+    translator: Option<String>,
+}
+
+struct Library {
+    books: Vec<(Book, bool)>,
+}
+
+impl Library {
+    fn new() -> Self {
+        Library { books: Vec::new() }
+    }
+
+    fn push_book(&mut self, b: Book) {
+        self.books.push((b, true));
+    }
+
+    fn find(&self, title: &str) -> Vec<Book> {
+        self.books
+            .iter()
+            .filter(|(book, available)| *available && book.title == title)
+            .map(|(book, _)| book.clone())
+            .collect()
+    }
+
+    fn borrow(&mut self, b: Book) -> Result<Book, String> {
+        for (book, available) in &mut self.books {
+            if *available && *book == b {
+                *available = false;
+                return Ok(book.clone());
+            }
+        }
+        Err("Książka niedostępna do wypożyczenia.".to_string())
+    }
+
+    fn return_book(&mut self, b: Book) {
+        for (book, available) in &mut self.books {
+            if *book == b {
+                *available = true;
+                break;
+            }
+        }
+    }
+}
 
 
 fn main() {
@@ -596,5 +687,54 @@ fn main() {
     for e in emails.iter() {
         println!("{} -> {}", e, email(e));
     }
+    let mut list = ShoppingList::new();
+
+    list.push(Position {
+        name: "Chleb".to_string(),
+        is_bought: false,
+    });
+
+    list.push(Position {
+        name: "Mleko".to_string(),
+        is_bought: true,
+    });
+
+    list.push(Position {
+        name: "Masło".to_string(),
+        is_bought: false,
+    });
+
+    list.bought("Mleko");
+
+    list.print();
+
+    let mut lib = Library::new();
+
+    let book1 = Book {
+        title: "Lalka".to_string(),
+        author: "Bolesław Prus".to_string(),
+        year: 1890,
+        translator: None,
+    };
+
+    let book2 = Book {
+        title: "Lalka".to_string(),
+        author: "Bolesław Prus".to_string(),
+        year: 1890,
+        translator: Some("Jan Kowalski".to_string()),
+    };
+
+    lib.push_book(book1.clone());
+    lib.push_book(book2.clone());
+
+    println!("Dostępne książki 'Lalka': {:?}", lib.find("Lalka"));
+
+    let wypozyczona = lib.borrow(book1.clone());
+    println!("Wypożyczono: {:?}", wypozyczona);
+
+    println!("Po wypożyczeniu: {:?}", lib.find("Lalka"));
+
+    lib.return_book(book1.clone());
+    println!("Po zwrocie: {:?}", lib.find("Lalka"));
 }
 
