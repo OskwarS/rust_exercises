@@ -45,7 +45,7 @@ fn sum_numbers(mut numbers: i32) -> i32 {
     sum
 }
 
-fn pyta(limit: i32) {
+fn pita(limit: i32) {
     for a in 1..=limit {
         for b in a+1..=limit {
             for c in b+1..=limit {
@@ -431,7 +431,7 @@ fn main() {
     println!("{}",factorial(20));
     println!("{}", reverse("987654321"));
     println!("{}", sum_numbers(12345));
-    pyta(13);
+    pita(13);
     //asci();
     let steps = collatz(12);
     println!("{}", steps);
