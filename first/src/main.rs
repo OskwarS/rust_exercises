@@ -149,6 +149,7 @@ fn rand(seed: &mut u32, min_rand: i32, max_rand: i32) -> i32 {
     ((*seed) % range) as i32 + min_rand
 }
 
+use std::sync::mpsc::Receiver;
 use rand::Rng;
 
 fn swap_arr(arr: &mut [i32], i: usize, j: usize){
@@ -277,6 +278,146 @@ fn filter_vecs5(vec: Vec<String>) -> Vec<String> {
 fn indeksy(tablica: &[String], element: &str) -> Vec<usize> {
     tablica.iter().enumerate().filter_map(|(i,s)| if s == element {Some(i)} else {None}).collect()
 }
+
+fn email(element: &str) -> bool{
+    let parts: Vec<&str> = element.split("@").collect();
+    if parts.len() != 2 {
+        return false;
+    }
+    let before = parts[0];
+    let after = parts[1];
+
+    let first = element.chars().next();
+    let last = element.chars().rev().next();
+    if let (Some(f), Some(l)) = (first, last) {
+        if !f.is_ascii_alphanumeric() || !l.is_ascii_alphanumeric() {
+            return false;
+        }
+    } else {
+        return true;
+    }
+
+    let mut cnt = 0;
+    for c in element.chars() {
+        if c == '@'{
+            cnt += 1;
+        } else if !c.is_ascii_alphanumeric() && c != '.'{
+            return false;
+        }
+    }
+    if cnt != 1{
+        return false;
+    }
+    if !after.contains('.') {
+        return false;
+    }
+    true
+}
+
+
+
+
+struct Set{
+    elements: Vec<u32>,
+}
+
+impl Set {
+    pub fn new() -> Set {
+        Set {
+            elements: Vec::new(),
+        }
+    }
+
+    fn from_slice(slice: &[u32]) -> Set {
+        let mut elements: Vec<u32> = slice.to_vec();
+        elements.sort_unstable();
+        elements.dedup();
+        Set { elements }
+    }
+
+    fn union(&self, other: &Set) -> Set {
+        let mut result = self.elements.clone();
+        for &elem in &other.elements {
+            if !result.contains(&elem) {
+                result.push(elem);
+            }
+        }
+        result.sort_unstable();
+        Set { elements: result }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct Transaction{
+    value: f32,
+    from: String,
+    to: String,
+}
+
+struct BankAccount{
+    account: String,
+    history: Vec<Transaction>,
+}
+
+impl BankAccount{
+    fn new(number: &str) -> Self{
+        BankAccount{
+            account: number.to_string(),
+            history: Vec::new(),
+        }
+    }
+
+    fn transaction(&mut self, t: Transaction){
+        if t.to == self.account || t.from == self.account {
+            self.history.push(t);
+        }
+    }
+
+    fn balance(&self) -> f32 {
+        let mut balance = 0.0;
+        for i in &self.history {
+            if i.to == self.account{
+                balance += i.value;
+            } else if i.from == self.account {
+                balance -= i.value;
+            }
+        }
+        balance
+    }
+
+    fn last(&self) -> Option<Transaction>{
+        self.history.last().cloned()
+    }
+}
+
+    fn control(s: &str) -> u32 {
+        let weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
+        let mut sum = 0;
+
+        for (i, c) in s.chars().take(10).enumerate() {
+            let digit = c.to_digit(10).unwrap();
+            sum += digit * weights[i];
+        }
+
+        let m = sum % 10;
+        if m == 0 {
+            0
+        } else {
+            10 - m
+        }
+    }
+    fn pesel(s: &str) -> bool{
+        if s.len() != 11  {
+            return false;
+        }
+        if !s.chars().all(|c| c.is_ascii_digit()) {
+            return false;
+        }
+        let expected = control(s);
+        let last_digit = s.chars().last().unwrap().to_digit(10).unwrap();
+
+        expected == last_digit
+    }
 
 fn main() {
     println!("{}", is_leap_year(2024));
@@ -436,5 +577,21 @@ fn main() {
     let wynik = indeksy(&tablica, "pies");
 
     println!("{:?}", wynik);
+
+    let emails = [
+        "test@example.com",     // true
+        "a.b@domain.pl",        // true
+        "@domain.com",          // false
+        "user@domain",          // false
+        "userdomain.com",       // false
+        "user@domaincom",       // false
+        "user@domain.c",        // true
+        "user@.com",            // true
+        "user!@example.com",    // false
+    ];
+
+    for e in emails.iter() {
+        println!("{} -> {}", e, email(e));
+    }
 }
 
